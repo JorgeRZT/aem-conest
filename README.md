@@ -24,6 +24,21 @@ endorsed, supported or guaranteed by Adobe, even though its developer is an Adob
 The same notice is available inside the app (sidebar and *About AEM Conest*).
 See also [DISCLAIMER.md](DISCLAIMER.md).
 
+## Scope and roadmap
+
+**Current scope:** AEM Conest only calculates classic **Content Requests**, i.e. content delivery
+requests (HTML pages). It does not calculate API Calls yet.
+
+**Roadmap:**
+
+- [ ] Calculate **API Calls** as well (e.g. `.json` and other API requests, which the current
+  cleaning flow deliberately excludes because it requires `html`). The ratio between API Calls
+  and Content Requests is **5 to 1** (5 API Calls correspond to 1 Content Request), so both
+  metrics should be reported together and be comparable.
+
+As with every figure produced by this tool, API Call estimates will be approximations
+(see the [Disclaimer](#disclaimer)).
+
 ## Sections
 
 - **Dashboard**: analyzes one or more files in a single pass, then lets you filter by date
