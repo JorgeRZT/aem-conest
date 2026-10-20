@@ -60,5 +60,5 @@ if [ -n "${SIGN_IDENTITY:-}" ] && [ -n "${NOTARY_PROFILE:-}" ]; then
   xcrun stapler staple "$DMG"
 fi
 
-echo "Listo: $APP"
-echo "       $DMG"
+echo "Done: $APP"
+echo "      $DMG"
