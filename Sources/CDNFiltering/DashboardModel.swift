@@ -156,25 +156,25 @@ final class DashboardModel: ObservableObject {
                     let cleaned = self.cleanedURL(for: src)
                     target = cleaned
                     if self.reuseClean && Self.isFresh(cleaned, comparedTo: src) {
-                        self.notes.append("\(cleaned.lastPathComponent): reutilizado (más reciente que el original)")
+                        self.notes.append("\(cleaned.lastPathComponent): reused (newer than the original)")
                     } else {
-                        self.setPhase("Limpiando \(src.lastPathComponent)\(tag)")
-                        guard scripts.exists("clean.sh") else { failure = "No existe el script clean.sh"; break }
+                        self.setPhase("Cleaning \(src.lastPathComponent)\(tag)")
+                        guard scripts.exists("clean.sh") else { failure = "Script clean.sh not found"; break }
                         let out = DataCollector()
                         let code = await self.shell.run("/bin/bash", [scripts.url("clean.sh").path, src.path, cleaned.path],
                                                         cwd: scripts.directory, onOutput: { out.append($0) })
                         if self.cancelled { break }
-                        if code != 0 { failure = "clean.sh falló con \(src.lastPathComponent): \(out.text)"; break }
+                        if code != 0 { failure = "clean.sh failed on \(src.lastPathComponent): \(out.text)"; break }
                         self.notes.append(out.text.trimmingCharacters(in: .whitespacesAndNewlines))
                     }
                 }
 
-                self.setPhase("Contando \(target.lastPathComponent)\(tag)")
+                self.setPhase("Counting \(target.lastPathComponent)\(tag)")
                 let out = DataCollector(), err = DataCollector()
                 let code = await self.shell.run("/usr/bin/awk", [Self.awkProgram, target.path],
                                                 onOutput: { out.append($0) }, onError: { err.append($0) })
                 if self.cancelled { break }
-                if code != 0 { failure = "awk falló con \(target.lastPathComponent): \(err.text)"; break }
+                if code != 0 { failure = "awk failed on \(target.lastPathComponent): \(err.text)"; break }
 
                 for line in out.text.split(separator: "\n") {
                     let f = line.split(separator: "\t", maxSplits: 2, omittingEmptySubsequences: false)
@@ -185,9 +185,9 @@ final class DashboardModel: ObservableObject {
 
             self.isLoading = false
             self.phaseStart = nil
-            if self.cancelled { self.notes.append("Análisis cancelado."); return }
+            if self.cancelled { self.notes.append("Analysis cancelled."); return }
             if let failure { self.errorMessage = failure; return }
-            if invalid > 0 { self.notes.append("\(Fmt.n(invalid)) líneas sin fecha válida (caracteres 2–11) ignoradas.") }
+            if invalid > 0 { self.notes.append("\(Fmt.n(invalid)) lines without a valid date (characters 2–11) ignored.") }
 
             let rows = acc.map { key, hits -> HitRow in
                 let p = key.split(separator: "\t", maxSplits: 1, omittingEmptySubsequences: false)
@@ -273,7 +273,7 @@ final class DashboardModel: ObservableObject {
         // Apilado: los N dominios principales + «Otros».
         let top = Set(ranked.prefix(Derived.stackTop).map(\.key))
         var stackAcc: [String: Int] = [:]
-        for r in rows { stackAcc[r.day + "\t" + (top.contains(r.domain) ? r.domain : "Otros"), default: 0] += r.hits }
+        for r in rows { stackAcc[r.day + "\t" + (top.contains(r.domain) ? r.domain : "Others"), default: 0] += r.hits }
         let stack = stackAcc.compactMap { k, v -> StackRow? in
             let p = k.split(separator: "\t", maxSplits: 1, omittingEmptySubsequences: false)
             guard let d = Fmt.day.date(from: String(p[0])) else { return nil }
@@ -294,7 +294,7 @@ final class DashboardModel: ObservableObject {
     }
 
     func csv() -> String {
-        var s = "fecha,dominio,hits\n"
+        var s = "date,domain,hits\n"
         for r in derived.rows { s += "\(r.day),\"\(r.domain)\",\(r.hits)\n" }
         return s
     }

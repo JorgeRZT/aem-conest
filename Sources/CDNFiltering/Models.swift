@@ -30,12 +30,12 @@ struct FlowStep: Identifiable, Codable, Hashable {
 /// Variables disponibles en los argumentos de un paso.
 enum FlowVariable {
     static let docs: [(name: String, text: String)] = [
-        ("{input}", "Fichero original arrastrado"),
-        ("{cleaned}", "Fichero limpio: el original sin su extensión + _clean.csv"),
-        ("{dir}", "Carpeta del fichero original"),
-        ("{name}", "Nombre del fichero original sin extensión"),
-        ("{start}", "Fecha de inicio (YYYY-MM-DD)"),
-        ("{end}", "Fecha de fin (YYYY-MM-DD)"),
+        ("{input}", "Original dropped file"),
+        ("{cleaned}", "Cleaned file: the original without its extension + _clean.csv"),
+        ("{dir}", "Folder of the original file"),
+        ("{name}", "Original file name without extension"),
+        ("{start}", "Start date (YYYY-MM-DD)"),
+        ("{end}", "End date (YYYY-MM-DD)"),
     ]
 
     static func values(for input: URL, range: (start: String, end: String)?) -> [String: String] {
@@ -77,9 +77,9 @@ enum FlowError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .unknownVariable(let v): return "Variable desconocida: {\(v)}"
-        case .missingScript(let s): return "No existe el script \(s)"
-        case .missingFile(let p): return "No existe el fichero \(p) (¿falta un paso previo que lo genere?)"
+        case .unknownVariable(let v): return "Unknown variable: {\(v)}"
+        case .missingScript(let s): return "Script not found: \(s)"
+        case .missingFile(let p): return "File not found: \(p) (is a previous step that creates it missing?)"
         }
     }
 }

@@ -25,11 +25,11 @@ struct ScriptsView: View {
                 }
                 Divider()
                 HStack {
-                    Button { newName = ""; showNew = true } label: { Image(systemName: "plus") }.help("Nuevo script")
+                    Button { newName = ""; showNew = true } label: { Image(systemName: "plus") }.help("New script")
                     Button { confirmDelete = true } label: { Image(systemName: "minus") }
-                        .disabled(selected == nil).help("Eliminar script")
+                        .disabled(selected == nil).help("Delete script")
                     Spacer()
-                    Button { scripts.revealInFinder() } label: { Image(systemName: "folder") }.help("Mostrar carpeta en Finder")
+                    Button { scripts.revealInFinder() } label: { Image(systemName: "folder") }.help("Show folder in Finder")
                 }
                 .buttonStyle(.borderless)
                 .padding(8)
@@ -40,15 +40,15 @@ struct ScriptsView: View {
                 if let name = selected {
                     HStack {
                         Text(name).font(.headline)
-                        if dirty { Text("● sin guardar").font(.caption).foregroundStyle(.orange) }
+                        if dirty { Text("● unsaved").font(.caption).foregroundStyle(.orange) }
                         Spacer()
                         if scripts.isDefault(name) {
-                            Button("Restaurar original") {
+                            Button("Restore original") {
                                 scripts.resetToDefault(name)
                                 load(name)
                             }
                         }
-                        Button("Guardar") { save() }
+                        Button("Save") { save() }
                             .keyboardShortcut("s", modifiers: .command)
                             .disabled(!dirty)
                     }
@@ -56,15 +56,15 @@ struct ScriptsView: View {
                         .font(.system(.body, design: .monospaced))
                         .border(Color.secondary.opacity(0.3))
                     HStack {
-                        Text("Se ejecuta con bash. Para usarlo, añádelo como paso en «Flujo».")
+                        Text("Runs with bash. To use it, add it as a step in “Flow”.")
                             .font(.caption).foregroundStyle(.secondary)
                         Spacer()
-                        Button("Añadir al flujo") {
+                        Button("Add to flow") {
                             flow.steps.append(FlowStep(script: name, args: "{cleaned}"))
                         }
                     }
                 } else {
-                    Text("Selecciona un script o crea uno nuevo con +")
+                    Text("Select a script or create a new one with +")
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
@@ -80,24 +80,24 @@ struct ScriptsView: View {
         }
         .sheet(isPresented: $showNew) {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Nuevo script").font(.headline)
-                TextField("nombre (se añade .sh)", text: $newName).textFieldStyle(.roundedBorder)
+                Text("New script").font(.headline)
+                TextField("name (.sh is appended)", text: $newName).textFieldStyle(.roundedBorder)
                     .onSubmit(createScript)
                 HStack {
                     Spacer()
-                    Button("Cancelar") { showNew = false }
-                    Button("Crear", action: createScript).keyboardShortcut(.defaultAction)
+                    Button("Cancel") { showNew = false }
+                    Button("Create", action: createScript).keyboardShortcut(.defaultAction)
                         .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
             .padding(20).frame(width: 340)
         }
-        .confirmationDialog("¿Eliminar \(selected ?? "")?", isPresented: $confirmDelete) {
-            Button("Eliminar", role: .destructive) {
+        .confirmationDialog("Delete \(selected ?? "")?", isPresented: $confirmDelete) {
+            Button("Delete", role: .destructive) {
                 if let s = selected { selected = nil; scripts.delete(s) }
             }
         } message: {
-            Text("Los scripts originales se pueden recuperar reiniciando la carpeta de scripts.")
+            Text("This cannot be undone.")
         }
     }
 

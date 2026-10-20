@@ -65,12 +65,12 @@ final class ScriptStore: ObservableObject {
         guard !exists(name) else { return nil }
         let template = """
         #!/usr/bin/env bash
-        # uso: \(name) entrada.csv
+        # usage: \(name) input.csv
         set -u
 
-        in="${1:?uso: $0 entrada.csv}"
+        in="${1:?usage: $0 input.csv}"
 
-        # Escribe aquí tu lógica. Lo que imprimas aparecerá en los resultados.
+        # Write your logic here. Anything you print will appear in the results.
         wc -l < "$in"
 
         """

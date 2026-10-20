@@ -2,77 +2,74 @@
 
 <img src="Resources/AppIcon.svg" width="128" align="right" alt="AEM Conest icon">
 
-App de macOS para revisar logs de CDN de **AEM as a Cloud Service**: limpia el tráfico
-(bots, recursos estáticos, rutas internas) y cuenta peticiones de contenido por día,
-dominio o rango de fechas. Arrastra uno o varios ficheros (`.csv`, `.log`, `.txt`…) y
-obtén los resultados sin usar la terminal. Está pensada para ficheros de varios gigas.
+A macOS app for reviewing **AEM as a Cloud Service** CDN logs: it filters out noise
+(bots, static assets, internal paths) and counts content requests by day, domain or date
+range. Drop one or more files (`.csv`, `.log`, `.txt`…) and get results without touching
+the terminal. Built for files of several gigabytes.
 
-> Los resultados son **recuentos aproximados de peticiones** (no visitantes ni sesiones)
-> basados en filtros de texto. No esperes una coincidencia exacta con una métrica oficial
-> de uso o facturación.
+> Results are **approximate request counts** (not unique visitors or sessions) based on
+> text filters. Do not expect a one-to-one match with an authoritative usage or billing metric.
 
-## Secciones
+## Sections
 
-- **Dashboard**: analiza uno o varios ficheros en una sola pasada y permite filtrar por
-  fechas y dominios al instante. Incluye gráfica por día (apilable por dominio), top de
-  dominios, mapa de calor día × dominio, tablas ordenables y exportación a CSV.
-- **Procesar**: ejecuta el flujo de scripts sobre los ficheros arrastrados y muestra el
-  comando exacto y la salida de cada paso.
-- **Flujo**: lista ordenada de pasos (script + argumentos). Se pueden reordenar,
-  desactivar, borrar y añadir. Variables: `{input}`, `{cleaned}`, `{dir}`, `{name}`,
-  `{start}`, `{end}`.
-- **Scripts**: editor de los `.sh`. Puedes crear scripts nuevos y añadirlos al flujo.
+- **Dashboard**: analyzes one or more files in a single pass, then lets you filter by date
+  and domain instantly. Includes a per-day chart (stackable by domain), top domains, a
+  day × domain heatmap, sortable tables and CSV export.
+- **Process**: runs the script flow on the dropped files and shows the exact command and
+  output of every step.
+- **Flow**: ordered list of steps (script + arguments). Steps can be reordered, disabled,
+  deleted and added. Variables: `{input}`, `{cleaned}`, `{dir}`, `{name}`, `{start}`, `{end}`.
+- **Scripts**: editor for the `.sh` files. Create new scripts and add them to the flow.
 
-Los scripts y el flujo se guardan en `~/Library/Application Support/AEM Conest/`.
+Scripts and the flow are stored in `~/Library/Application Support/AEM Conest/`.
 
-## Qué hace la limpieza (`clean.sh`)
+## What cleaning does (`clean.sh`)
 
-Se descartan las líneas que coinciden (sin distinguir mayúsculas, en cualquier parte de la
-línea) con:
+Lines matching any of the following (case-insensitive, anywhere in the line) are dropped:
 
-- **Bots, crawlers, monitorización, proxies e IA**: Googlebot, Bingbot, AhrefsBot, SemrushBot,
-  Applebot, ClaudeBot, ChatGPT, Perplexity, StatusCake, SiteImprove, etc.
-- **Rutas internas de AEM**: `/etc.clientlibs/`, `/api/graphql`, `/content/experience-fragments/`.
-- **Recursos**: imágenes, vídeo, `.css`, `.js`, `.mjs`.
+- **Bots, crawlers, monitoring, proxies and AI agents**: Googlebot, Bingbot, AhrefsBot,
+  SemrushBot, Applebot, ClaudeBot, ChatGPT, Perplexity, StatusCake, SiteImprove, etc.
+- **Internal AEM paths**: `/etc.clientlibs/`, `/api/graphql`, `/content/experience-fragments/`.
+- **Resources**: images, video, `.css`, `.js`, `.mjs`.
 
-Después solo se conservan las líneas con `GET,200` y `html` (sensible a mayúsculas). La lista
-completa está en [`default-scripts/clean.sh`](default-scripts/clean.sh); estos filtros no
-garantizan la eliminación de todo el tráfico automatizado.
+Only lines containing both `GET,200` and `html` (case-sensitive) are kept. The full list is in
+[`default-scripts/clean.sh`](default-scripts/clean.sh). These filters do not guarantee the
+removal of all automated traffic.
 
-## Formato de entrada esperado
+## Expected input format
 
-- La fecha ocupa los caracteres 2 a 11 de cada línea, en formato `YYYY-MM-DD`
-  (por ejemplo, una línea que empieza por `"2026-09-21`).
-- El dominio es el último campo separado por comas.
-- Cada línea es una petición, sin cabecera. No es un parser CSV completo (no gestiona
-  comillas generales ni registros multilínea).
+- The date occupies characters 2 through 11 of each line in `YYYY-MM-DD` format
+  (e.g. a line starting with `"2026-09-21`).
+- The domain is the last comma-separated field.
+- Each line is one request, with no header row. This is not a full CSV parser (no general
+  quoting or multiline records).
 
-## Requisitos
+## Requirements
 
-- macOS 14 o superior. Usa solo herramientas del sistema (`bash`, `grep`, `awk`, `sort`, `perl`).
-- Para compilar: Xcode / Swift 5.9+.
+- macOS 14 or later. Uses only system tools (`bash`, `grep`, `awk`, `sort`, `perl`).
+- To build: Xcode / Swift 5.9+.
 
-## Compilar
+## Build
 
 ```bash
-./build.sh   # genera dist/AEM Conest.app (universal) y dist/AEM-Conest-1.0.dmg
+./build.sh   # produces dist/AEM Conest.app (universal) and dist/AEM-Conest-1.0.dmg
 ```
 
-La app resultante va firmada ad-hoc. En otro Mac, macOS pedirá confirmación la primera vez:
-clic derecho → **Abrir**, o *Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente*.
+The resulting app is ad-hoc signed. On another Mac, macOS asks for confirmation the first
+time: right-click → **Open**, or *System Settings → Privacy & Security → Open Anyway*.
 
-Para firmar con Developer ID y notarizar, consulta el encabezado de `build.sh`
-(`SIGN_IDENTITY` y `NOTARY_PROFILE`).
+To sign with a Developer ID and notarize, see the header of `build.sh`
+(`SIGN_IDENTITY` and `NOTARY_PROFILE`).
 
-## Estructura
+## Layout
 
 ```
-Sources/CDNFiltering/   código SwiftUI (Dashboard, Procesar, Flujo, Scripts)
-default-scripts/        scripts originales; tools/gen_defaults.sh los embebe en la app
-Resources/AppIcon.svg   icono; tools/make_icon.sh genera el .icns
-build.sh                compila, empaqueta, firma y crea el .dmg
+Sources/CDNFiltering/   SwiftUI code (Dashboard, Process, Flow, Scripts)
+default-scripts/        original scripts; tools/gen_defaults.sh embeds them in the app
+Resources/AppIcon.svg   icon; tools/make_icon.sh generates the .icns
+build.sh                builds, packages, signs and creates the .dmg
 ```
 
-## Licencia
+## License
 
 [MIT](LICENSE)

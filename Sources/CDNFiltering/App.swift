@@ -21,8 +21,8 @@ struct AEMConestApp: App {
 
 enum Section: String, CaseIterable, Identifiable {
     case dashboard = "Dashboard"
-    case process = "Procesar"
-    case flow = "Flujo"
+    case process = "Process"
+    case flow = "Flow"
     case scripts = "Scripts"
 
     var id: String { rawValue }

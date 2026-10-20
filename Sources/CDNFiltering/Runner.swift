@@ -51,12 +51,12 @@ final class Runner: ObservableObject {
             if cancelRequested { break }
             if failed {
                 files[f].steps[s].status = .skipped
-                files[f].steps[s].output = "Omitido: un paso anterior falló."
+                files[f].steps[s].output = "Skipped: a previous step failed."
                 continue
             }
             if step.needsDateRange && range == nil {
                 files[f].steps[s].status = .skipped
-                files[f].steps[s].output = "Omitido: este paso usa {start}/{end} y no hay rango de fechas activado."
+                files[f].steps[s].output = "Skipped: this step uses {start}/{end} and no date range is enabled."
                 continue
             }
 
@@ -130,7 +130,7 @@ private final class OutputBuffer: @unchecked Sendable {
         lock.lock(); defer { lock.unlock() }
         if data.count < limit { data.append(chunk) }
         var text = String(decoding: data, as: UTF8.self)
-        if data.count >= limit { text += "\n… salida truncada …" }
+        if data.count >= limit { text += "\n… output truncated …" }
         return text
     }
 }

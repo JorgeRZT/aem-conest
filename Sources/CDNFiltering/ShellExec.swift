@@ -36,7 +36,7 @@ final class ShellExec: @unchecked Sendable {
             try process.run()
         } catch {
             group.leave()
-            onOutput(Data("No se pudo ejecutar: \(error.localizedDescription)".utf8))
+            onOutput(Data("Could not run: \(error.localizedDescription)".utf8))
             return -1
         }
         // Sin esto el extremo de escritura sigue abierto en este proceso y nunca llega el EOF.

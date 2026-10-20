@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# uso: ./dominios.sh entrada.csv
+# usage: ./hitsByDomain.sh input.csv
 set -u
 
-in="${1:?uso: $0 entrada.csv}"
+in="${1:?usage: $0 input.csv}"
 
 awk '{
   n = split($0, f, ",")
-  h = f[n]; gsub(/["\r]/, "", h)        # dominio = último campo, sin comillas
+  h = f[n]; gsub(/["\r]/, "", h)        # domain = last field, without quotes
   c[h]++
 }
 END {

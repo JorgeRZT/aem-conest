@@ -6,7 +6,7 @@ struct FlowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Los pasos se ejecutan en orden, para cada fichero. Arrastra para reordenar.")
+            Text("Steps run in order, for each file. Drag to reorder.")
                 .foregroundStyle(.secondary)
 
             List {
@@ -22,12 +22,12 @@ struct FlowView: View {
             HStack {
                 Button {
                     flow.steps.append(FlowStep(script: scripts.names.first ?? "", args: "{cleaned}"))
-                } label: { Label("Añadir paso", systemImage: "plus") }
-                Button("Restaurar flujo del README") { flow.resetToDefault() }
+                } label: { Label("Add step", systemImage: "plus") }
+                Button("Restore default flow") { flow.resetToDefault() }
                 Spacer()
             }
 
-            GroupBox("Variables disponibles en los argumentos") {
+            GroupBox("Variables available in arguments") {
                 VStack(alignment: .leading, spacing: 3) {
                     ForEach(FlowVariable.docs, id: \.name) { v in
                         HStack(alignment: .firstTextBaseline) {
@@ -35,7 +35,7 @@ struct FlowView: View {
                             Text(v.text).font(.caption).foregroundStyle(.secondary)
                         }
                     }
-                    Text("Los argumentos se separan por espacios; cada uno es un argumento independiente del script, así que las rutas con espacios funcionan. Un paso que usa {start}/{end} se omite si no hay rango de fechas activo.")
+                    Text("Arguments are separated by spaces; each one is passed to the script as a separate argument, so paths with spaces work. A step that uses {start}/{end} is skipped if no date range is enabled.")
                         .font(.caption).foregroundStyle(.secondary).padding(.top, 4)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -43,7 +43,7 @@ struct FlowView: View {
             }
         }
         .padding(16)
-        .navigationTitle("Flujo")
+        .navigationTitle("Flow")
     }
 }
 
@@ -59,16 +59,16 @@ struct StepRow: View {
             Toggle("", isOn: $step.enabled).labelsHidden()
             Text("\(index).").foregroundStyle(.secondary).frame(width: 22)
             Picker("", selection: $step.script) {
-                if !scripts.names.contains(step.script) { Text("\(step.script) (no existe)").tag(step.script) }
+                if !scripts.names.contains(step.script) { Text("\(step.script) (not found)").tag(step.script) }
                 ForEach(scripts.names, id: \.self) { Text($0).tag($0) }
             }
             .labelsHidden()
             .frame(width: 220)
-            TextField("argumentos", text: $step.args)
+            TextField("arguments", text: $step.args)
                 .font(.system(.body, design: .monospaced))
                 .textFieldStyle(.roundedBorder)
             if !scripts.exists(step.script) {
-                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange).help("El script no existe")
+                Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange).help("Script not found")
             }
             Button(role: .destructive, action: onDelete) { Image(systemName: "trash") }.buttonStyle(.plain)
         }

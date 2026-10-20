@@ -33,7 +33,7 @@ struct ProcessView: View {
             Divider()
             ResultsView(inputsEmpty: inputs.isEmpty)
         }
-        .navigationTitle("Procesar")
+        .navigationTitle("Process")
     }
 
     private var controls: some View {
@@ -51,9 +51,9 @@ struct ProcessView: View {
     private var dropZone: some View {
         VStack(spacing: 8) {
             Image(systemName: "arrow.down.doc").font(.system(size: 28))
-            Text("Arrastra aquí uno o varios ficheros").font(.headline)
-            Text(".csv, .log, .txt… cualquier fichero de texto").font(.caption).foregroundStyle(.secondary)
-            Button("Elegir ficheros…", action: chooseFiles)
+            Text("Drop one or more files here").font(.headline)
+            Text(".csv, .log, .txt… any text file").font(.caption).foregroundStyle(.secondary)
+            Button("Choose files…", action: chooseFiles)
         }
         .frame(maxWidth: .infinity, minHeight: 130)
         .background(
@@ -75,14 +75,14 @@ struct ProcessView: View {
     private var fileList: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text("Ficheros (\(inputs.count))").font(.subheadline.bold())
+                Text("Files (\(inputs.count))").font(.subheadline.bold())
                 Spacer()
                 if !inputs.isEmpty && !runner.isRunning {
-                    Button("Quitar todos") { inputs.removeAll() }.buttonStyle(.link)
+                    Button("Remove all") { inputs.removeAll() }.buttonStyle(.link)
                 }
             }
             if inputs.isEmpty {
-                Text("Ninguno todavía").font(.caption).foregroundStyle(.secondary)
+                Text("None yet").font(.caption).foregroundStyle(.secondary)
             } else {
                 List {
                     ForEach(inputs, id: \.self) { url in
@@ -106,14 +106,14 @@ struct ProcessView: View {
 
     private var rangeSection: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Toggle("Rango de fechas (para pasos con {start} / {end})", isOn: $useRange)
+            Toggle("Date range (for steps using {start} / {end})", isOn: $useRange)
                 .font(.subheadline)
             if useRange {
-                DatePicker("Inicio", selection: $startDate, displayedComponents: .date)
-                DatePicker("Fin", selection: $endDate, displayedComponents: .date)
-                Text("Ambos días incluidos.").font(.caption).foregroundStyle(.secondary)
+                DatePicker("Start", selection: $startDate, displayedComponents: .date)
+                DatePicker("End", selection: $endDate, displayedComponents: .date)
+                Text("Both days are inclusive.").font(.caption).foregroundStyle(.secondary)
                 if rangeInvalid {
-                    Text("La fecha de inicio debe ser anterior o igual a la de fin.")
+                    Text("The start date must be on or before the end date.")
                         .font(.caption).foregroundStyle(.red)
                 }
             }
@@ -123,20 +123,20 @@ struct ProcessView: View {
 
     private var flowSummary: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Flujo que se ejecutará").font(.subheadline.bold())
+            Text("Flow to run").font(.subheadline.bold())
             ForEach(Array(activeSteps.enumerated()), id: \.element.id) { i, step in
                 let skipped = step.needsDateRange && !useRange
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text("\(i + 1).").foregroundStyle(.secondary)
                     Text(step.script).font(.system(.caption, design: .monospaced))
                     if skipped {
-                        Text("(se omite sin rango)").font(.caption2).foregroundStyle(.orange)
+                        Text("(skipped without a range)").font(.caption2).foregroundStyle(.orange)
                     }
                 }
                 .opacity(skipped ? 0.6 : 1)
             }
             if activeSteps.isEmpty {
-                Text("No hay pasos activos. Edítalos en «Flujo».").font(.caption).foregroundStyle(.orange)
+                Text("No active steps. Edit them in “Flow”.").font(.caption).foregroundStyle(.orange)
             }
         }
     }
@@ -145,14 +145,14 @@ struct ProcessView: View {
         HStack {
             if runner.isRunning {
                 Button(role: .destructive) { runner.cancel() } label: {
-                    Label("Cancelar", systemImage: "stop.fill").frame(maxWidth: .infinity)
+                    Label("Cancel", systemImage: "stop.fill").frame(maxWidth: .infinity)
                 }
                 .controlSize(.large)
             } else {
                 Button {
                     runner.start(inputs: inputs, flow: flow.steps, scripts: scripts, range: range)
                 } label: {
-                    Label("Ejecutar flujo", systemImage: "play.fill").frame(maxWidth: .infinity)
+                    Label("Run flow", systemImage: "play.fill").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
@@ -167,7 +167,7 @@ struct ProcessView: View {
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
-        panel.message = "Elige los ficheros a procesar"
+        panel.message = "Choose the files to process"
         if panel.runModal() == .OK { add(panel.urls) }
     }
 
@@ -190,15 +190,15 @@ struct ResultsView: View {
             if runner.files.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "chart.bar.doc.horizontal").font(.system(size: 40)).foregroundStyle(.secondary)
-                    Text(inputsEmpty ? "Añade ficheros y ejecuta el flujo" : "Pulsa «Ejecutar flujo»")
+                    Text(inputsEmpty ? "Add files and run the flow" : "Press “Run flow”")
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 HStack {
-                    Text("Resultados").font(.headline)
+                    Text("Results").font(.headline)
                     Spacer()
-                    Button("Exportar informe…", action: export).disabled(runner.isRunning)
+                    Button("Export report…", action: export).disabled(runner.isRunning)
                 }
                 .padding(12)
                 Divider()
@@ -214,7 +214,7 @@ struct ResultsView: View {
 
     private func export() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "informe.txt"
+        panel.nameFieldStringValue = "report.txt"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         var text = ""
         for f in runner.files {
@@ -280,7 +280,7 @@ struct StepView: View {
                 }
                 if !step.output.isEmpty {
                     Button { copy(step.output) } label: { Image(systemName: "doc.on.doc") }
-                        .buttonStyle(.plain).help("Copiar salida")
+                        .buttonStyle(.plain).help("Copy output")
                 }
             }
             if !step.command.isEmpty {
