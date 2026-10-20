@@ -7,6 +7,11 @@ A macOS app for reviewing **AEM as a Cloud Service** CDN logs: it filters out no
 range. Drop one or more files (`.csv`, `.log`, `.txt`…) and get results without touching
 the terminal. Built for files of several gigabytes.
 
+**Current version: 2026.10.20** (see [Versioning](#versioning-and-updates)).
+
+> **The app is not signed or notarized by Apple.** It is only ad-hoc signed, so macOS
+> Gatekeeper will warn you the first time you open it. See [Installing](#installing-the-unsigned-app).
+
 ## Disclaimer
 
 **AEM Conest is an independent, unofficial tool. It is not an Adobe product and is not
@@ -78,17 +83,40 @@ removal of all automated traffic.
 - macOS 14 or later. Uses only system tools (`bash`, `grep`, `awk`, `sort`, `perl`).
 - To build: Xcode / Swift 5.9+.
 
+## Installing the unsigned app
+
+Download `AEM-Conest-<version>.dmg` from the [latest release](https://github.com/JorgeRZT/aem-conest/releases/latest),
+open it and drag **AEM Conest** to *Applications*. Because the app is **not signed with an Apple
+Developer ID and not notarized**, macOS will refuse to open it with a double-click the first time:
+
+- Right-click the app → **Open** → **Open**, or
+- *System Settings → Privacy & Security → Open Anyway*, or
+- from a terminal: `xattr -dr com.apple.quarantine "/Applications/AEM Conest.app"`
+
+Only run builds you trust: you can always review the source here and build it yourself.
+
 ## Build
 
 ```bash
-./build.sh   # produces dist/AEM Conest.app (universal) and dist/AEM-Conest-1.0.dmg
+./build.sh   # produces dist/AEM Conest.app (universal) and dist/AEM-Conest-<version>.dmg
 ```
 
-The resulting app is ad-hoc signed. On another Mac, macOS asks for confirmation the first
-time: right-click → **Open**, or *System Settings → Privacy & Security → Open Anyway*.
+The resulting app is ad-hoc signed. To sign with a Developer ID and notarize, see the header
+of `build.sh` (`SIGN_IDENTITY` and `NOTARY_PROFILE`).
 
-To sign with a Developer ID and notarize, see the header of `build.sh`
-(`SIGN_IDENTITY` and `NOTARY_PROFILE`).
+## Versioning and updates
+
+Versions use calendar versioning, `YYYY.MM.DD` (e.g. `2026.10.20`). The single source of truth
+is the [`VERSION`](VERSION) file, which `build.sh` writes into the app's `Info.plist`.
+
+On launch, the app asks the GitHub Releases API
+(`https://api.github.com/repos/JorgeRZT/aem-conest/releases/latest`) for the latest release and,
+if it is newer than the running version, shows an **Update available** dialog with a
+**Download** button. You can also use *AEM Conest → Check for Updates…*. The check is a single
+anonymous request to GitHub; failures (e.g. no internet) are ignored silently on launch.
+
+To publish a new version: update `VERSION`, run `./build.sh`, tag the commit `v<version>` and
+create a GitHub release with the `.dmg` attached.
 
 ## Layout
 
@@ -97,6 +125,7 @@ Sources/CDNFiltering/   SwiftUI code (Dashboard, Process, Flow, Scripts)
 default-scripts/        original scripts; tools/gen_defaults.sh embeds them in the app
 Resources/AppIcon.svg   icon; tools/make_icon.sh generates the .icns
 build.sh                builds, packages, signs and creates the .dmg
+VERSION                 app version (CalVer), read by build.sh
 ```
 
 ## License

@@ -10,7 +10,7 @@ cd "$(dirname "$0")"
 
 APP_NAME="AEM Conest"
 BUNDLE_ID="com.aemconest.app"
-VERSION="1.0"
+VERSION="$(tr -d '[:space:]' < VERSION)"   # CalVer YYYY.MM.DD, single source: ./VERSION
 OUT="dist"
 APP="$OUT/$APP_NAME.app"
 
@@ -36,7 +36,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$VERSION</string>
-  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleVersion</key><string>$VERSION</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
