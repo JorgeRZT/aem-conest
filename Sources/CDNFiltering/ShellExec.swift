@@ -1,7 +1,7 @@
 import Foundation
 
-/// Lanza un ejecutable en su propio grupo de procesos (vía perl/setpgrp) para poder cancelar
-/// el pipeline entero (grep | awk | sort…) de una vez.
+/// Launches an executable in its own process group (via perl/setpgrp) so the whole
+/// pipeline (grep | awk | sort…) can be cancelled at once.
 final class ShellExec: @unchecked Sendable {
     private let lock = NSLock()
     private var pid: pid_t = 0
@@ -13,8 +13,8 @@ final class ShellExec: @unchecked Sendable {
         if p > 0 { kill(-p, SIGTERM) }
     }
 
-    /// Devuelve el código de salida (-1 si no se pudo lanzar). Si `onError` es nil, stderr se
-    /// mezcla con stdout.
+    /// Returns the exit code (-1 if it could not be launched). If `onError` is nil, stderr is
+    /// merged into stdout.
     func run(_ executable: String, _ args: [String], cwd: URL? = nil,
              onOutput: @escaping @Sendable (Data) -> Void,
              onError: (@Sendable (Data) -> Void)? = nil) async -> Int32 {
@@ -39,7 +39,7 @@ final class ShellExec: @unchecked Sendable {
             onOutput(Data("Could not run: \(error.localizedDescription)".utf8))
             return -1
         }
-        // Sin esto el extremo de escritura sigue abierto en este proceso y nunca llega el EOF.
+        // Without this the write end stays open in this process and EOF never arrives.
         try? out.fileHandleForWriting.close()
         try? err?.fileHandleForWriting.close()
 
@@ -67,7 +67,7 @@ final class ShellExec: @unchecked Sendable {
     }
 }
 
-/// Acumula bytes de forma segura entre hilos.
+/// Accumulates bytes safely across threads.
 final class DataCollector: @unchecked Sendable {
     private var data = Data()
     private let lock = NSLock()

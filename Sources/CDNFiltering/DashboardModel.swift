@@ -29,7 +29,7 @@ struct DomainTotal: Identifiable {
     let share: Double
 }
 
-/// Datos ya filtrados y agregados que consumen las gráficas y tablas.
+/// Filtered and aggregated data consumed by the charts and tables.
 struct Derived {
     var rows: [HitRow] = []
     var byDay: [DayTotal] = []
@@ -65,25 +65,25 @@ enum Fmt {
 
 @MainActor
 final class DashboardModel: ObservableObject {
-    // Fuentes y opciones
+    // Sources and options
     @Published var sources: [URL] = []
     @Published var cleanFirst = true
     @Published var reuseClean = true
 
-    // Estado
+    // State
     @Published var isLoading = false
     @Published var phase = ""
     @Published var phaseStart: Date?
     @Published var errorMessage: String?
     @Published var notes: [String] = []
 
-    // Datos
+    // Data
     @Published private(set) var allRows: [HitRow] = []
     @Published private(set) var allDomains: [DomainTotal] = []
     @Published private(set) var minDate = Date()
     @Published private(set) var maxDate = Date()
 
-    // Filtros
+    // Filters
     @Published var start = Date() { didSet { recompute() } }
     @Published var end = Date() { didSet { recompute() } }
     @Published var selectedDomains: Set<String> = [] { didSet { recompute() } }
@@ -108,7 +108,7 @@ final class DashboardModel: ObservableObject {
     }
     """#
 
-    // MARK: Fuentes
+    // MARK: Sources
 
     func add(_ urls: [URL]) {
         for url in urls where url.isFileURL && !sources.contains(url) {
@@ -126,7 +126,7 @@ final class DashboardModel: ObservableObject {
         URL(fileURLWithPath: src.deletingPathExtension().path + "_clean.csv")
     }
 
-    // MARK: Análisis
+    // MARK: Analysis
 
     func cancel() {
         cancelled = true
@@ -209,7 +209,7 @@ final class DashboardModel: ObservableObject {
         return c >= s
     }
 
-    // MARK: Filtros y agregados
+    // MARK: Filters and aggregates
 
     private func load(_ rows: [HitRow]) {
         suspendRecompute = true
@@ -238,7 +238,7 @@ final class DashboardModel: ObservableObject {
         recompute()
     }
 
-    /// Atajo de fechas relativo al último día con datos.
+    /// Date shortcut relative to the last day with data.
     func setLastDays(_ n: Int?) {
         suspendRecompute = true
         end = maxDate
@@ -270,7 +270,7 @@ final class DashboardModel: ObservableObject {
         let ranked = domTotals.sorted { $0.value > $1.value }
         let byDomain = ranked.map { DomainTotal(domain: $0.key, hits: $0.value, share: total > 0 ? Double($0.value) / Double(total) : 0) }
 
-        // Apilado: los N dominios principales + «Otros».
+        // Stacking: the top N domains + "Others".
         let top = Set(ranked.prefix(Derived.stackTop).map(\.key))
         var stackAcc: [String: Int] = [:]
         for r in rows { stackAcc[r.day + "\t" + (top.contains(r.domain) ? r.domain : "Others"), default: 0] += r.hits }

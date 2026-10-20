@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Genera Resources/AppIcon.icns a partir de Resources/AppIcon.svg
+# Generates Resources/AppIcon.icns from Resources/AppIcon.svg
 set -eu
 cd "$(dirname "$0")/.."
 tmp="$(mktemp -d)"
 swift - "$PWD/Resources/AppIcon.svg" "$tmp/icon_1024.png" <<'SWIFT'
 import AppKit
 let a = CommandLine.arguments
-guard let img = NSImage(contentsOfFile: a[1]) else { fatalError("no se pudo leer el SVG") }
+guard let img = NSImage(contentsOfFile: a[1]) else { fatalError("could not read the SVG") }
 let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 1024, pixelsHigh: 1024, bitsPerSample: 8,
                            samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
                            bytesPerRow: 0, bitsPerPixel: 0)!
@@ -24,4 +24,4 @@ done
 iconutil -c icns "$set_dir" -o Resources/AppIcon.icns
 cp "$tmp/icon_1024.png" Resources/AppIcon-preview.png
 rm -rf "$tmp"
-echo "Generado Resources/AppIcon.icns"
+echo "Generated Resources/AppIcon.icns"

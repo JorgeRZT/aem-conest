@@ -15,11 +15,11 @@
     <clipPath id="inside"><circle cx="452" cy="452" r="214"/></clipPath>
   </defs>
 
-  <!-- Base estilo macOS -->
+  <!-- macOS-style base -->
   <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
   <rect x="100" y="100" width="824" height="824" rx="185" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="3"/>
 
-  <!-- Red de nodos CDN (fondo) -->
+  <!-- CDN node network (background) -->
   <g stroke="#7c86ff" stroke-opacity="0.45" stroke-width="6" fill="none" stroke-linecap="round">
     <path d="M700 250 L790 360 L735 500"/>
     <path d="M700 250 L610 190"/>
@@ -33,7 +33,7 @@
     <circle cx="735" cy="500" r="12"/>
   </g>
 
-  <!-- Contenido de la lupa: líneas de log -->
+  <!-- Magnifier content: log lines -->
   <circle cx="452" cy="452" r="214" fill="#0b0e2b" fill-opacity="0.85"/>
   <g clip-path="url(#inside)">
     <g fill="#5eead4" fill-opacity="0.9">
@@ -56,7 +56,7 @@
     </g>
   </g>
 
-  <!-- Lupa -->
+  <!-- Magnifier -->
   <circle cx="452" cy="452" r="214" fill="none" stroke="url(#lens)" stroke-width="40"/>
   <path d="M610 610 L770 770" stroke="url(#handle)" stroke-width="64" stroke-linecap="round"/>
 </svg>

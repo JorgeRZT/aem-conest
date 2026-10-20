@@ -1,6 +1,6 @@
 import Foundation
 
-/// Ejecuta el flujo sobre cada fichero, en cola y paso a paso.
+/// Runs the flow on each file, queued and step by step.
 @MainActor
 final class Runner: ObservableObject {
     @Published var files: [FileRun] = []
@@ -65,8 +65,8 @@ final class Runner: ObservableObject {
             do {
                 guard scripts.exists(step.script) else { throw FlowError.missingScript(step.script) }
                 args = try FlowVariable.resolve(step.args, values: values)
-                // Un paso con {input} lee el original (y puede crear {cleaned}); uno que solo usa
-                // {cleaned} necesita que un paso previo ya lo haya generado.
+                // A step with {input} reads the original (and may create {cleaned}); one that only uses
+                // {cleaned} needs a previous step to have generated it already.
                 let tokens = step.args.split(whereSeparator: { $0 == " " || $0 == "\t" })
                 let required = tokens.contains("{input}") ? "input" : (tokens.contains("{cleaned}") ? "cleaned" : nil)
                 if let key = required, let p = values[key], !FileManager.default.fileExists(atPath: p) {

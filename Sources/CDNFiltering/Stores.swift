@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 
 enum AppPaths {
-    /// ~/Library/Application Support/AEM Conest/ (migra la carpeta antigua "CDN Filtering" si existe).
+    /// ~/Library/Application Support/AEM Conest/ (migrates the legacy "CDN Filtering" folder if present).
     static let support: URL = {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let new = base.appendingPathComponent("AEM Conest", isDirectory: true)
@@ -16,7 +16,7 @@ enum AppPaths {
     }()
 }
 
-/// Carpeta de scripts editable por el usuario, en ~/Library/Application Support/AEM Conest/scripts.
+/// User-editable scripts folder, in ~/Library/Application Support/AEM Conest/scripts.
 @MainActor
 final class ScriptStore: ObservableObject {
     @Published private(set) var names: [String] = []
@@ -56,7 +56,7 @@ final class ScriptStore: ObservableObject {
         reload()
     }
 
-    /// Crea un script nuevo con una plantilla. Devuelve el nombre final o nil si ya existe / es inválido.
+    /// Creates a new script from a template. Returns the final name, or nil if it already exists / is invalid.
     func create(named raw: String) -> String? {
         var name = raw.trimmingCharacters(in: .whitespaces)
             .replacingOccurrences(of: "/", with: "-")
@@ -93,7 +93,7 @@ final class ScriptStore: ObservableObject {
     }
 }
 
-/// Flujo de ejecución (lista ordenada de pasos), guardado en flow.json.
+/// Execution flow (ordered list of steps), stored in flow.json.
 @MainActor
 final class FlowStore: ObservableObject {
     @Published var steps: [FlowStep] {

@@ -50,7 +50,7 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: Fuentes
+    // MARK: Sources
 
     private var sourceBar: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -141,7 +141,7 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Filtros
+// MARK: - Filters
 
 struct FilterBar: View {
     @EnvironmentObject var model: DashboardModel
@@ -226,7 +226,7 @@ struct DomainPicker: View {
     }
 }
 
-// MARK: - Pestañas
+// MARK: - Tabs
 
 struct KPI: View {
     let title: String

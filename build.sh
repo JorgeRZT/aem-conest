@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Compila "AEM Conest.app" (universal arm64 + x86_64) y genera un .dmg.
+# Builds "AEM Conest.app" (universal arm64 + x86_64) and creates a .dmg.
 #
-# Sin firmar (por defecto):   ./build.sh
-# Firmada y notarizada:       SIGN_IDENTITY="Developer ID Application: Tu Nombre (TEAMID)" \
-#                             NOTARY_PROFILE="mi-perfil-notarytool" ./build.sh
-#   (el perfil se crea una vez con: xcrun notarytool store-credentials mi-perfil-notarytool)
+# Unsigned (default):         ./build.sh
+# Signed and notarized:       SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" \
+#                             NOTARY_PROFILE="my-notarytool-profile" ./build.sh
+#   (create the profile once with: xcrun notarytool store-credentials my-notarytool-profile)
 set -eu
 cd "$(dirname "$0")"
 
@@ -45,7 +45,7 @@ PLIST
 if [ -n "${SIGN_IDENTITY:-}" ]; then
   codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
 else
-  codesign --force --sign - "$APP"   # firma ad-hoc: la app arranca, pero Gatekeeper pedirá "Abrir igualmente"
+  codesign --force --sign - "$APP"   # ad-hoc signature: the app launches, but Gatekeeper will ask for "Open Anyway"
 fi
 
 DMG="$OUT/AEM-Conest-$VERSION.dmg"

@@ -1,13 +1,13 @@
 import Foundation
 
-/// Un paso del flujo: un script de la carpeta de scripts + sus argumentos.
+/// A flow step: a script from the scripts folder + its arguments.
 struct FlowStep: Identifiable, Codable, Hashable {
     var id = UUID()
     var script: String
     var args: String
     var enabled = true
 
-    /// Variables que usa la plantilla de argumentos, p. ej. "start" para `{cleaned} {start} {end}`.
+    /// Variables used by the argument template, e.g. "start" for `{cleaned} {start} {end}`.
     var variables: Set<String> {
         let regex = try! NSRegularExpression(pattern: #"\{([A-Za-z_]+)\}"#)
         let ns = args as NSString
@@ -27,7 +27,7 @@ struct FlowStep: Identifiable, Codable, Hashable {
     ]
 }
 
-/// Variables disponibles en los argumentos de un paso.
+/// Variables available in a step's arguments.
 enum FlowVariable {
     static let docs: [(name: String, text: String)] = [
         ("{input}", "Original dropped file"),
@@ -53,8 +53,8 @@ enum FlowVariable {
         return v
     }
 
-    /// Divide la plantilla por espacios y sustituye cada `{variable}`. Cada token es un argumento
-    /// independiente, así que las rutas con espacios no necesitan comillas.
+    /// Splits the template on spaces and substitutes each `{variable}`. Every token is an
+    /// independent argument, so paths with spaces need no quoting.
     static func resolve(_ template: String, values: [String: String]) throws -> [String] {
         let regex = try NSRegularExpression(pattern: #"\{([A-Za-z_]+)\}"#)
         return try template.split(whereSeparator: { $0 == " " || $0 == "\t" }).map { token in

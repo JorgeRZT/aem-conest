@@ -7,8 +7,22 @@ A macOS app for reviewing **AEM as a Cloud Service** CDN logs: it filters out no
 range. Drop one or more files (`.csv`, `.log`, `.txt`…) and get results without touching
 the terminal. Built for files of several gigabytes.
 
-> Results are **approximate request counts** (not unique visitors or sessions) based on
-> text filters. Do not expect a one-to-one match with an authoritative usage or billing metric.
+## Disclaimer
+
+**AEM Conest is an independent, unofficial tool. It is not an Adobe product and is not
+endorsed, supported or guaranteed by Adobe, even though its developer is an Adobe employee.**
+
+- It is **not a 100% guarantee of anything**. It can help you approximate a real figure, but
+  its results must not be considered accurate or authoritative.
+- Results are request counts computed with text filters over the log files you provide. They
+  are not unique visitors or sessions, and the filters may include or exclude traffic
+  incorrectly (they do not remove all bots or automated traffic).
+- Do not use these figures as a billing, contractual or usage-entitlement metric. For official
+  numbers, use Adobe's own reporting and support channels.
+- The software is provided "as is", without warranty of any kind (see the [MIT License](LICENSE)).
+
+The same notice is available inside the app (sidebar and *About AEM Conest*).
+See also [DISCLAIMER.md](DISCLAIMER.md).
 
 ## Sections
 

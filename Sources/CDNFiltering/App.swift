@@ -16,6 +16,11 @@ struct AEMConestApp: App {
                 .environmentObject(dashboard)
                 .frame(minWidth: 960, minHeight: 600)
         }
+        .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About AEM Conest") { showAboutPanel() }
+            }
+        }
     }
 }
 
@@ -38,13 +43,26 @@ enum Section: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @State private var selection: Section? = .dashboard
+    @State private var showDisclaimer = false
 
     var body: some View {
         NavigationSplitView {
             List(Section.allCases, selection: $selection) { s in
                 Label(s.rawValue, systemImage: s.icon).tag(s)
             }
-            .navigationSplitViewColumnWidth(min: 140, ideal: 160, max: 200)
+            .navigationSplitViewColumnWidth(min: 160, ideal: 190, max: 240)
+            .safeAreaInset(edge: .bottom) {
+                Button { showDisclaimer = true } label: {
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                        Text(Disclaimer.short).font(.caption).multilineTextAlignment(.leading)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+                .help("Read the disclaimer")
+            }
         } detail: {
             switch selection ?? .dashboard {
             case .dashboard: DashboardView()
@@ -53,6 +71,7 @@ struct ContentView: View {
             case .scripts: ScriptsView()
             }
         }
+        .sheet(isPresented: $showDisclaimer) { DisclaimerSheet() }
     }
 }
 
