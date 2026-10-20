@@ -1,0 +1,7 @@
+.build/
+dist/
+.DS_Store
+*.csv
+*.log
+*.txt
+Resources/AppIcon-preview.png

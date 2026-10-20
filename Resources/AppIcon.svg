@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b2160"/>
+      <stop offset="1" stop-color="#0b0e2b"/>
+    </linearGradient>
+    <linearGradient id="lens" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7a3d"/>
+      <stop offset="1" stop-color="#ee3b2e"/>
+    </linearGradient>
+    <clipPath id="inside"><circle cx="452" cy="452" r="214"/></clipPath>
+  </defs>
+
+  <!-- Base estilo macOS -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="3"/>
+
+  <!-- Red de nodos CDN (fondo) -->
+  <g stroke="#7c86ff" stroke-opacity="0.45" stroke-width="6" fill="none" stroke-linecap="round">
+    <path d="M700 250 L790 360 L735 500"/>
+    <path d="M700 250 L610 190"/>
+    <path d="M790 360 L860 300"/>
+  </g>
+  <g fill="#7c86ff" fill-opacity="0.85">
+    <circle cx="700" cy="250" r="20"/>
+    <circle cx="790" cy="360" r="15"/>
+    <circle cx="610" cy="190" r="12"/>
+    <circle cx="860" cy="300" r="10"/>
+    <circle cx="735" cy="500" r="12"/>
+  </g>
+
+  <!-- Contenido de la lupa: líneas de log -->
+  <circle cx="452" cy="452" r="214" fill="#0b0e2b" fill-opacity="0.85"/>
+  <g clip-path="url(#inside)">
+    <g fill="#5eead4" fill-opacity="0.9">
+      <rect x="290" y="318" width="70" height="16" rx="8"/>
+      <rect x="372" y="318" width="190" height="16" rx="8" fill-opacity="0.55"/>
+      <rect x="290" y="372" width="70" height="16" rx="8"/>
+      <rect x="372" y="372" width="140" height="16" rx="8" fill-opacity="0.55"/>
+    </g>
+    <rect x="262" y="418" width="380" height="50" fill="#ff7a3d" fill-opacity="0.22"/>
+    <g fill="#ff7a3d">
+      <rect x="290" y="427" width="70" height="16" rx="8"/>
+      <rect x="372" y="427" width="205" height="16" rx="8" fill-opacity="0.8"/>
+      <rect x="290" y="447" width="0" height="0"/>
+    </g>
+    <g fill="#5eead4" fill-opacity="0.9">
+      <rect x="290" y="482" width="70" height="16" rx="8"/>
+      <rect x="372" y="482" width="165" height="16" rx="8" fill-opacity="0.55"/>
+      <rect x="290" y="536" width="70" height="16" rx="8"/>
+      <rect x="372" y="536" width="120" height="16" rx="8" fill-opacity="0.55"/>
+    </g>
+  </g>
+
+  <!-- Lupa -->
+  <circle cx="452" cy="452" r="214" fill="none" stroke="url(#lens)" stroke-width="40"/>
+  <path d="M610 610 L770 770" stroke="url(#handle)" stroke-width="64" stroke-linecap="round"/>
+</svg>
