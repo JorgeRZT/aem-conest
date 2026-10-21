@@ -4,3 +4,4 @@
 *.log
 *.txt
 Resources/AppIcon-preview.png
+!test/cdn-2026-09.csv
