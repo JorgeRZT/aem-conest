@@ -2,6 +2,15 @@
 
 <img src="Resources/AppIcon.svg" width="128" align="right" alt="AEM Conest icon">
 
+[![Version](https://img.shields.io/badge/version-2026.10.20-brightgreen)](VERSION)
+[![License: MIT](https://img.shields.io/github/license/JorgeRZT/aem-conest)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey?logo=apple)](#requirements)
+[![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange?logo=swift&logoColor=white)](Package.swift)
+[![Last commit](https://img.shields.io/github/last-commit/JorgeRZT/aem-conest)](https://github.com/JorgeRZT/aem-conest/commits)
+[![Repo size](https://img.shields.io/github/repo-size/JorgeRZT/aem-conest)](https://github.com/JorgeRZT/aem-conest)
+[![Not signed or notarized](https://img.shields.io/badge/Apple%20signing-ad--hoc%20only-yellow)](#installing-the-unsigned-app)
+[![Unofficial](https://img.shields.io/badge/Adobe-unofficial%20tool-red)](#disclaimer)
+
 A macOS app for reviewing **AEM as a Cloud Service** CDN logs: it filters out noise
 (bots, static assets, internal paths) and counts content requests by day, domain or date
 range. Drop one or more files (`.csv`, `.log`, `.txt`…) and get results without touching
@@ -119,7 +128,7 @@ if it is newer than the running version, shows an **Update available** dialog wi
 anonymous request to GitHub; failures (e.g. no internet) are ignored silently on launch.
 
 To publish a new version: update `VERSION`, run `./build.sh`, commit the new `.dmg` to the `dist` branch
-(and update the download links in this README), tag the commit `v<version>` and
+(and update the download links and the version badge in this README), tag the commit `v<version>` and
 create a GitHub release with the `.dmg` attached.
 
 ## Layout
