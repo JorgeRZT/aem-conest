@@ -9,6 +9,8 @@ the terminal. Built for files of several gigabytes.
 
 **Current version: 2026.10.20** (see [Versioning](#versioning-and-updates)).
 
+**[⬇ Download AEM-Conest-2026.10.20.dmg](https://github.com/JorgeRZT/aem-conest/raw/dist/dist/AEM-Conest-2026.10.20.dmg)** (macOS 14+, unsigned: see [Installing](#installing-the-unsigned-app)).
+
 > **The app is not signed or notarized by Apple.** It is only ad-hoc signed, so macOS
 > Gatekeeper will warn you the first time you open it. See [Installing](#installing-the-unsigned-app).
 
@@ -85,7 +87,8 @@ removal of all automated traffic.
 
 ## Installing the unsigned app
 
-Download `AEM-Conest-<version>.dmg` from the [latest release](https://github.com/JorgeRZT/aem-conest/releases/latest),
+Download [`AEM-Conest-2026.10.20.dmg`](https://github.com/JorgeRZT/aem-conest/raw/dist/dist/AEM-Conest-2026.10.20.dmg) (also published in the
+[latest release](https://github.com/JorgeRZT/aem-conest/releases/latest)),
 open it and drag **AEM Conest** to *Applications*. Because the app is **not signed with an Apple
 Developer ID and not notarized**, macOS will refuse to open it with a double-click the first time:
 
@@ -115,7 +118,8 @@ if it is newer than the running version, shows an **Update available** dialog wi
 **Download** button. You can also use *AEM Conest → Check for Updates…*. The check is a single
 anonymous request to GitHub; failures (e.g. no internet) are ignored silently on launch.
 
-To publish a new version: update `VERSION`, run `./build.sh`, tag the commit `v<version>` and
+To publish a new version: update `VERSION`, run `./build.sh`, commit the new `.dmg` to the `dist` branch
+(and update the download links in this README), tag the commit `v<version>` and
 create a GitHub release with the `.dmg` attached.
 
 ## Layout
