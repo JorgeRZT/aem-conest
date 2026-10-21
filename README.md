@@ -68,6 +68,27 @@ As with every figure produced by this tool, API Call estimates will be approxima
 
 Scripts and the flow are stored in `~/Library/Application Support/AEM Conest/`.
 
+## Screenshots
+
+Captured with the sample data in [`test/cdn-2026-09.csv`](test/cdn-2026-09.csv) (synthetic logs for
+`jlopellicer.com` and `www.jlopellicer.com`, September 2026), so you can reproduce them.
+
+**Summary**: requests per day, stacked by domain, for the whole month.
+
+![Dashboard summary for the full month](docs/screenshots/dashboard-summary.png)
+
+**Summary with a date range**: the same view filtered to 17-30 September.
+
+![Dashboard summary filtered by date range](docs/screenshots/dashboard-date-range.png)
+
+**Domains**: requests and share per domain.
+
+![Dashboard domains table](docs/screenshots/dashboard-domains.png)
+
+**Day × domain**: heatmap and sortable table.
+
+![Dashboard day by domain heatmap](docs/screenshots/dashboard-day-domain-heatmap.png)
+
 ## What cleaning does (`clean.sh`)
 
 Lines matching any of the following (case-insensitive, anywhere in the line) are dropped:
@@ -136,6 +157,8 @@ create a GitHub release with the `.dmg` attached.
 ```
 Sources/CDNFiltering/   SwiftUI code (Dashboard, Process, Flow, Scripts)
 default-scripts/        original scripts; tools/gen_defaults.sh embeds them in the app
+test/                   sample CDN logs (September 2026) to try the app
+docs/screenshots/       images used in this README
 Resources/AppIcon.svg   icon; tools/make_icon.sh generates the .icns
 build.sh                builds, packages, signs and creates the .dmg
 VERSION                 app version (CalVer), read by build.sh
