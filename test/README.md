@@ -11,3 +11,7 @@ Synthetic raw CDN logs (no real traffic) to try AEM Conest without your own file
   Weekdays have more traffic than weekends, with spikes on Sep 9, 10 and 23.
 
 Drop `cdn-2026-09.csv` onto the app.
+
+`cdn-2026-09-aemcs.log` holds every 20th request of the same data (2,815 lines) in the AEM as a
+Cloud Service CDN log format (one JSON object per line; the extra fields such as `ttfb`, `rid` or
+`pop` are made up). Use it to check that JSON logs are recognised.

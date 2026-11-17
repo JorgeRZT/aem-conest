@@ -96,10 +96,20 @@ final class DashboardModel: ObservableObject {
 
     private static let awkProgram = #"""
     {
-      d = substr($0, 2, 10)
+      if ($0 ~ /^[ \t]*\{/) {
+        # AEM as a Cloud Service JSON line: day from "timestamp", domain from "host".
+        d = ""; h = ""
+        if (match($0, /"timestamp"[ \t]*:[ \t]*"/)) d = substr($0, RSTART + RLENGTH, 10)
+        if (match($0, /"host"[ \t]*:[ \t]*"/)) {
+          h = substr($0, RSTART + RLENGTH)
+          h = substr(h, 1, index(h, "\"") - 1)
+        }
+      } else {
+        d = substr($0, 2, 10)
+        n = split($0, f, ",")
+        h = f[n]; gsub(/["\r]/, "", h)
+      }
       if (d !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) { bad++; next }
-      n = split($0, f, ",")
-      h = f[n]; gsub(/["\r]/, "", h)
       c[d "\t" h]++
     }
     END {
@@ -187,7 +197,7 @@ final class DashboardModel: ObservableObject {
             self.phaseStart = nil
             if self.cancelled { self.notes.append("Analysis cancelled."); return }
             if let failure { self.errorMessage = failure; return }
-            if invalid > 0 { self.notes.append("\(Fmt.n(invalid)) lines without a valid date (characters 2–11) ignored.") }
+            if invalid > 0 { self.notes.append("\(Fmt.n(invalid)) lines without a valid date (characters 2–11, or \"timestamp\" in JSON logs) ignored.") }
 
             let rows = acc.map { key, hits -> HitRow in
                 let p = key.split(separator: "\t", maxSplits: 1, omittingEmptySubsequences: false)

@@ -91,7 +91,10 @@ Captured with the sample data in [`test/cdn-2026-09.csv`](test/cdn-2026-09.csv) 
 
 ## What cleaning does (`clean.sh`)
 
-Lines matching any of the following (case-insensitive, anywhere in the line) are dropped:
+AEM as a Cloud Service JSON lines are first rewritten to the CSV layout described in
+[Expected input format](#expected-input-format), so the same rules apply to both formats and the
+cleaned file is always CSV. Lines matching any of the following (case-insensitive, anywhere in
+the line) are then dropped:
 
 - **Bots, crawlers, monitoring, proxies and AI agents**: Googlebot, Bingbot, AhrefsBot,
   SemrushBot, Applebot, ClaudeBot, ChatGPT, Perplexity, StatusCake, SiteImprove, etc.
@@ -104,11 +107,28 @@ removal of all automated traffic.
 
 ## Expected input format
 
+Two formats are recognised, line by line (a line starting with `{` is treated as JSON), so a
+file may even mix them:
+
+**CSV export**
+
 - The date occupies characters 2 through 11 of each line in `YYYY-MM-DD` format
   (e.g. a line starting with `"2026-09-21`).
 - The domain is the last comma-separated field.
 - Each line is one request, with no header row. This is not a full CSV parser (no general
   quoting or multiline records).
+
+**AEM as a Cloud Service CDN log (JSON lines)**
+
+- One JSON object per line, as downloaded from Cloud Manager, e.g.
+  `{"timestamp":"2026-11-09T00:00:00+0000",…,"host":"www.example.com","url":"/en.html","method":"GET",…,"status":200,…}`.
+- `clean.sh` reads `timestamp`, `cli_ip`, `url`, `req_ua`, `method`, `status`, `res_ctype`,
+  `cache` and `host` (in any order; other keys are ignored) and writes
+  `"timestamp","cli_ip","url","req_ua",METHOD,STATUS,"res_ctype","cache","host"`.
+- The dashboard can also count raw JSON files without cleaning (day from `timestamp`, domain
+  from `host`). The other default scripts expect the cleaned file (`{cleaned}`).
+- Keys are located with regular expressions; this is not a full JSON parser. Compressed
+  `.log.gz` files must be decompressed first.
 
 ## Requirements
 
