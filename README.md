@@ -43,7 +43,9 @@ See also [DISCLAIMER.md](DISCLAIMER.md).
 ## Scope and roadmap
 
 **Current scope:** AEM Conest only calculates classic **Content Requests**, i.e. content delivery
-requests (HTML pages). It does not calculate API Calls yet.
+requests (HTML pages). It does not calculate API Calls yet. The *Content Requests* section also
+counts JSON responses, as Adobe's documentation does (see
+[What the Content Requests section counts](#what-the-content-requests-section-counts-content-requestssh)).
 
 **Roadmap:**
 
@@ -60,6 +62,24 @@ As with every figure produced by this tool, API Call estimates will be approxima
 - **Dashboard**: analyzes one or more files in a single pass, then lets you filter by date
   and domain instantly. Includes a per-day chart (stackable by domain), top domains, a
   day × domain heatmap, sortable tables and CSV export.
+- **Content Requests**: breaks the Content Requests down to show what consumes them. It reads
+  the raw logs and classifies every line as counted (by whom: browsers, monitoring tools, HTTP
+  libraries, unlisted bots, no user agent) or excluded (and why). Tabs:
+  - *Overview*: a waterfall from log lines to Content Requests (JSON calls weighted at 1/5),
+    Content Requests per day by consumer, and HTML vs JSON.
+  - *Insights*: often avoidable patterns, such as monitors fetching pages, bots that are not
+    on Adobe's exclusion list, scripts, empty user agents, single IPs with heavy browser
+    traffic and error pages answered with 200. Each comes with Adobe's recommendation.
+  - *Pages*: HTML responses only, as a domain → folder → page tree and a sortable list, with the
+    share of non-browser traffic per path. In the tree a page and its folder share one node
+    (`/en.html` and `/en/…` are both `en`): *Page* counts the URL itself, *Total* the page plus
+    everything below it.
+  - *JSON*: JSON responses only (Sling models, persisted queries, headless APIs), with the number
+    of calls and their Content Request equivalent (5 JSON calls = 1 Content Request).
+  - *Consumers*: user agents, client IPs and countries (JSON logs only).
+  - *Excluded*: what does not count, by reason, with examples.
+
+  It shares the date/domain filters and the dropped files with the Dashboard.
 - **Process**: runs the script flow on the dropped files and shows the exact command and
   output of every step.
 - **Flow**: ordered list of steps (script + arguments). Steps can be reordered, disabled,
@@ -104,6 +124,35 @@ the line) are then dropped:
 Only lines containing both `GET,200` and `html` (case-sensitive) are kept. The full list is in
 [`default-scripts/clean.sh`](default-scripts/clean.sh). These filters do not guarantee the
 removal of all automated traffic.
+
+## What the Content Requests section counts (`content-requests.sh`)
+
+The section follows Adobe's
+[Content Requests documentation](https://experienceleague.adobe.com/en/docs/experience-manager-cloud-service/content/implementing/using-cloud-manager/content-requests).
+Its rules are wider than `clean.sh`, so its totals do not match the Dashboard.
+
+- **Counted:** `GET` requests with status 100–299 whose response is HTML (`text/html`) or JSON
+  (`application/json`, `application/*+json`, `text/json`; not JSONP), from the cache or the
+  origin. The response `Content-Type` decides the type, never the path. This includes monitoring tools, HTTP
+  libraries (curl, python-requests…), bots that are not on Adobe's list and requests without a
+  user agent. Query strings are ignored when grouping by path.
+- **JSON weight:** HTML pages count 1 each. JSON calls weigh 1/5, as Adobe does internally:
+  every complete group of 5 calls adds one Content Request to the totals, so the total is
+  `HTML pages + floor(JSON calls / 5)`. The *Overview* waterfall shows that discount as its own
+  step. The ratio is fixed (`ContentAnalysisModel.apiCallsPerContentRequest`).
+- **Not counted:**
+  - 3xx (including 304), 4xx and 5xx responses, and methods other than `GET`;
+  - `/libs/`, `/system/probes/health`, `/etc.clientlibs/`, `/api/graphql`, `favicon.ico` and
+    `/content/experience-fragments/` (the logs carry no referrer, so experience fragments are
+    assumed to be reused on the same domain);
+  - responses that are neither HTML nor JSON;
+  - the pod warm-up (`skyline-service-warmup`), and the well-known bots and AI crawlers listed
+    by Adobe.
+
+Prefetch requests and AI agents that use a browser user agent count as well, but the logs cannot
+tell them apart from visitors. The script writes `<name>_analysis.tsv` next to each log, and the
+app reuses that file while it is newer than both the log and the script. The bot lists are
+deliberately duplicated from `clean.sh`, so if a list changes, edit both scripts.
 
 ## Expected input format
 
@@ -175,7 +224,7 @@ create a GitHub release with the `.dmg` attached.
 ## Layout
 
 ```
-Sources/CDNFiltering/   SwiftUI code (Dashboard, Process, Flow, Scripts)
+Sources/CDNFiltering/   SwiftUI code (Dashboard, Content Requests, Process, Flow, Scripts)
 default-scripts/        original scripts; tools/gen_defaults.sh embeds them in the app
 test/                   sample CDN logs (September 2026) to try the app
 docs/screenshots/       images used in this README

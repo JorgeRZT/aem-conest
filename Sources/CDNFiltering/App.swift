@@ -5,7 +5,9 @@ struct AEMConestApp: App {
     @StateObject private var scripts = ScriptStore()
     @StateObject private var flow = FlowStore()
     @StateObject private var runner = Runner()
+    @StateObject private var sources = SourceStore()
     @StateObject private var dashboard = DashboardModel()
+    @StateObject private var analysis = ContentAnalysisModel()
     @StateObject private var updates = UpdateChecker()
 
     var body: some Scene {
@@ -14,7 +16,9 @@ struct AEMConestApp: App {
                 .environmentObject(scripts)
                 .environmentObject(flow)
                 .environmentObject(runner)
+                .environmentObject(sources)
                 .environmentObject(dashboard)
+                .environmentObject(analysis)
                 .environmentObject(updates)
                 .frame(minWidth: 960, minHeight: 600)
         }
@@ -31,6 +35,7 @@ struct AEMConestApp: App {
 
 enum Section: String, CaseIterable, Identifiable {
     case dashboard = "Dashboard"
+    case contentRequests = "Content Requests"
     case process = "Process"
     case flow = "Flow"
     case scripts = "Scripts"
@@ -39,6 +44,7 @@ enum Section: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .dashboard: return "chart.bar.xaxis"
+        case .contentRequests: return "chart.pie"
         case .process: return "play.rectangle"
         case .flow: return "list.number"
         case .scripts: return "terminal"
@@ -77,6 +83,7 @@ struct ContentView: View {
         } detail: {
             switch selection ?? .dashboard {
             case .dashboard: DashboardView()
+            case .contentRequests: ContentAnalysisView()
             case .process: ProcessView()
             case .flow: FlowView()
             case .scripts: ScriptsView()

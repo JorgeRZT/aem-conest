@@ -10,9 +10,9 @@ private enum DashTab: String, CaseIterable, Identifiable {
 
 struct DashboardView: View {
     @EnvironmentObject var scripts: ScriptStore
+    @EnvironmentObject var sources: SourceStore
     @EnvironmentObject var model: DashboardModel
     @State private var tab = DashTab.summary
-    @State private var targeted = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -21,7 +21,7 @@ struct DashboardView: View {
             if model.allRows.isEmpty {
                 emptyState
             } else {
-                FilterBar()
+                FilterBar(model: model)
                 Divider()
                 Picker("", selection: $tab) {
                     ForEach(DashTab.allCases) { Text($0.rawValue).tag($0) }
@@ -38,16 +38,8 @@ struct DashboardView: View {
             }
         }
         .navigationTitle("Dashboard")
-        .dropDestination(for: URL.self) { urls, _ in
-            model.add(urls)
-            return true
-        } isTargeted: { targeted = $0 }
-        .overlay {
-            if targeted {
-                RoundedRectangle(cornerRadius: 12).strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [8]))
-                    .padding(6).allowsHitTesting(false)
-            }
-        }
+        .fileDropTarget(sources)
+        .onChange(of: sources.urls) { _, urls in model.sourcesChanged(urls) }
     }
 
     // MARK: Sources
@@ -55,26 +47,7 @@ struct DashboardView: View {
     private var sourceBar: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Image(systemName: "arrow.down.doc")
-                        Text(model.sources.isEmpty ? "Drop one or more files here" : "\(model.sources.count) file(s)")
-                            .font(.headline)
-                        Button("Choose…", action: choose).disabled(model.isLoading)
-                        if !model.sources.isEmpty {
-                            Button("Remove all") { model.sources.removeAll() }
-                                .buttonStyle(.link).disabled(model.isLoading)
-                        }
-                    }
-                    ForEach(model.sources, id: \.self) { url in
-                        HStack(spacing: 6) {
-                            Text(url.lastPathComponent).font(.caption).lineLimit(1).truncationMode(.middle)
-                            Text(formatBytes(fileSize(url))).font(.caption).foregroundStyle(.secondary)
-                            Button { model.sources.removeAll { $0 == url } } label: { Image(systemName: "xmark.circle.fill") }
-                                .buttonStyle(.plain).foregroundStyle(.secondary).disabled(model.isLoading)
-                        }
-                    }
-                }
+                SourceFilesView(disabled: model.isLoading)
                 Spacer()
                 VStack(alignment: .leading, spacing: 4) {
                     Picker("", selection: $model.cleanFirst) {
@@ -92,32 +65,16 @@ struct DashboardView: View {
                     Button(role: .destructive) { model.cancel() } label: { Label("Cancel", systemImage: "stop.fill") }
                         .controlSize(.large)
                 } else {
-                    Button { model.analyze(scripts: scripts) } label: {
+                    Button { model.analyze(sources.urls, scripts: scripts) } label: {
                         Label(model.allRows.isEmpty ? "Analyze" : "Re-analyze", systemImage: "play.fill")
                     }
                     .buttonStyle(.borderedProminent).controlSize(.large)
-                    .disabled(model.sources.isEmpty)
+                    .disabled(sources.urls.isEmpty)
                     .keyboardShortcut(.return, modifiers: .command)
                 }
             }
-            if model.isLoading, let started = model.phaseStart {
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
-                    Text(model.phase)
-                    TimelineView(.periodic(from: started, by: 1)) { ctx in
-                        let t = Int(ctx.date.timeIntervalSince(started))
-                        Text(String(format: "%d:%02d", t / 60, t % 60)).monospacedDigit().foregroundStyle(.secondary)
-                    }
-                }
-                .font(.callout)
-            }
-            if let err = model.errorMessage {
-                Label(err, systemImage: "exclamationmark.triangle.fill").font(.callout).foregroundStyle(.red)
-                    .textSelection(.enabled)
-            }
-            ForEach(model.notes, id: \.self) { n in
-                Text(n).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
-            }
+            AnalysisStatusView(isLoading: model.isLoading, phase: model.phase, phaseStart: model.phaseStart,
+                               error: model.errorMessage, notes: model.notes)
         }
         .padding(14)
     }
@@ -131,20 +88,12 @@ struct DashboardView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-
-    private func choose() {
-        let panel = NSOpenPanel()
-        panel.allowsMultipleSelection = true
-        panel.canChooseDirectories = false
-        panel.message = "Choose the files to analyze"
-        if panel.runModal() == .OK { model.add(panel.urls) }
-    }
 }
 
 // MARK: - Filters
 
-struct FilterBar: View {
-    @EnvironmentObject var model: DashboardModel
+struct FilterBar<Model: DateDomainFilterable>: View {
+    @ObservedObject var model: Model
     @State private var showDomains = false
 
     var body: some View {
@@ -163,7 +112,7 @@ struct FilterBar: View {
             } label: {
                 Label("Domains: \(model.selectedDomains.count) of \(model.allDomains.count)", systemImage: "line.3.horizontal.decrease.circle")
             }
-            .popover(isPresented: $showDomains, arrowEdge: .bottom) { DomainPicker().frame(width: 380, height: 440) }
+            .popover(isPresented: $showDomains, arrowEdge: .bottom) { DomainPicker(model: model).frame(width: 380, height: 440) }
             Button("Reset") { model.resetFilters() }
             Spacer()
             Button { export() } label: { Label("Export CSV", systemImage: "square.and.arrow.up") }
@@ -179,14 +128,14 @@ struct FilterBar: View {
 
     private func export() {
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "dashboard.csv"
+        panel.nameFieldStringValue = model.exportName
         guard panel.runModal() == .OK, let url = panel.url else { return }
         try? model.csv().write(to: url, atomically: true, encoding: .utf8)
     }
 }
 
-struct DomainPicker: View {
-    @EnvironmentObject var model: DashboardModel
+struct DomainPicker<Model: DateDomainFilterable>: View {
+    @ObservedObject var model: Model
     @State private var search = ""
 
     private var visible: [DomainTotal] {

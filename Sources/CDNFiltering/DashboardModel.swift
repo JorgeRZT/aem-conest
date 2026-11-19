@@ -63,10 +63,25 @@ enum Fmt {
     static func n(_ v: Int) -> String { number.string(from: NSNumber(value: v)) ?? "\(v)" }
 }
 
+/// A model whose data can be narrowed by date range and domain with `FilterBar`.
 @MainActor
-final class DashboardModel: ObservableObject {
-    // Sources and options
-    @Published var sources: [URL] = []
+protocol DateDomainFilterable: ObservableObject {
+    var start: Date { get set }
+    var end: Date { get set }
+    var minDate: Date { get }
+    var maxDate: Date { get }
+    var selectedDomains: Set<String> { get set }
+    var allDomains: [DomainTotal] { get }
+    /// Default file name for "Export CSV".
+    var exportName: String { get }
+    func setLastDays(_ n: Int?)
+    func resetFilters()
+    func csv() -> String
+}
+
+@MainActor
+final class DashboardModel: DateDomainFilterable {
+    // Options
     @Published var cleanFirst = true
     @Published var reuseClean = true
 
@@ -118,15 +133,12 @@ final class DashboardModel: ObservableObject {
     }
     """#
 
+    let exportName = "dashboard.csv"
+
     // MARK: Sources
 
-    func add(_ urls: [URL]) {
-        for url in urls where url.isFileURL && !sources.contains(url) {
-            var isDir: ObjCBool = false
-            if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), !isDir.boolValue {
-                sources.append(url)
-            }
-        }
+    /// Picks "Already clean" when every file looks like a clean.sh output.
+    func sourcesChanged(_ sources: [URL]) {
         if !sources.isEmpty {
             cleanFirst = !sources.allSatisfy { $0.lastPathComponent.contains("_clean") }
         }
@@ -143,13 +155,12 @@ final class DashboardModel: ObservableObject {
         shell.cancel()
     }
 
-    func analyze(scripts: ScriptStore) {
+    func analyze(_ sources: [URL], scripts: ScriptStore) {
         guard !isLoading, !sources.isEmpty else { return }
         isLoading = true
         cancelled = false
         errorMessage = nil
         notes = []
-        let sources = self.sources
 
         Task { [weak self] in
             guard let self else { return }
@@ -212,11 +223,14 @@ final class DashboardModel: ObservableObject {
         phaseStart = Date()
     }
 
-    private static func isFresh(_ cleaned: URL, comparedTo src: URL) -> Bool {
+    /// True when `derived` exists and is at least as new as every file in `sources`.
+    static func isFresh(_ derived: URL, comparedTo sources: URL...) -> Bool {
         let keys: Set<URLResourceKey> = [.contentModificationDateKey]
-        guard let c = try? cleaned.resourceValues(forKeys: keys).contentModificationDate,
-              let s = try? src.resourceValues(forKeys: keys).contentModificationDate else { return false }
-        return c >= s
+        guard let c = try? derived.resourceValues(forKeys: keys).contentModificationDate else { return false }
+        return sources.allSatisfy { src in
+            guard let s = try? src.resourceValues(forKeys: keys).contentModificationDate else { return false }
+            return c >= s
+        }
     }
 
     // MARK: Filters and aggregates
