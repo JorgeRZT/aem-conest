@@ -63,10 +63,25 @@ enum Fmt {
     static func n(_ v: Int) -> String { number.string(from: NSNumber(value: v)) ?? "\(v)" }
 }
 
+/// A model whose data can be narrowed by date range and domain with `FilterBar`.
 @MainActor
-final class DashboardModel: ObservableObject {
-    // Sources and options
-    @Published var sources: [URL] = []
+protocol DateDomainFilterable: ObservableObject {
+    var start: Date { get set }
+    var end: Date { get set }
+    var minDate: Date { get }
+    var maxDate: Date { get }
+    var selectedDomains: Set<String> { get set }
+    var allDomains: [DomainTotal] { get }
+    /// Default file name for "Export CSV".
+    var exportName: String { get }
+    func setLastDays(_ n: Int?)
+    func resetFilters()
+    func csv() -> String
+}
+
+@MainActor
+final class DashboardModel: DateDomainFilterable {
+    // Options
     @Published var cleanFirst = true
     @Published var reuseClean = true
 
@@ -96,10 +111,20 @@ final class DashboardModel: ObservableObject {
 
     private static let awkProgram = #"""
     {
-      d = substr($0, 2, 10)
+      if ($0 ~ /^[ \t]*\{/) {
+        # AEM as a Cloud Service JSON line: day from "timestamp", domain from "host".
+        d = ""; h = ""
+        if (match($0, /"timestamp"[ \t]*:[ \t]*"/)) d = substr($0, RSTART + RLENGTH, 10)
+        if (match($0, /"host"[ \t]*:[ \t]*"/)) {
+          h = substr($0, RSTART + RLENGTH)
+          h = substr(h, 1, index(h, "\"") - 1)
+        }
+      } else {
+        d = substr($0, 2, 10)
+        n = split($0, f, ",")
+        h = f[n]; gsub(/["\r]/, "", h)
+      }
       if (d !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) { bad++; next }
-      n = split($0, f, ",")
-      h = f[n]; gsub(/["\r]/, "", h)
       c[d "\t" h]++
     }
     END {
@@ -108,15 +133,12 @@ final class DashboardModel: ObservableObject {
     }
     """#
 
+    let exportName = "dashboard.csv"
+
     // MARK: Sources
 
-    func add(_ urls: [URL]) {
-        for url in urls where url.isFileURL && !sources.contains(url) {
-            var isDir: ObjCBool = false
-            if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), !isDir.boolValue {
-                sources.append(url)
-            }
-        }
+    /// Picks "Already clean" when every file looks like a clean.sh output.
+    func sourcesChanged(_ sources: [URL]) {
         if !sources.isEmpty {
             cleanFirst = !sources.allSatisfy { $0.lastPathComponent.contains("_clean") }
         }
@@ -133,13 +155,12 @@ final class DashboardModel: ObservableObject {
         shell.cancel()
     }
 
-    func analyze(scripts: ScriptStore) {
+    func analyze(_ sources: [URL], scripts: ScriptStore) {
         guard !isLoading, !sources.isEmpty else { return }
         isLoading = true
         cancelled = false
         errorMessage = nil
         notes = []
-        let sources = self.sources
 
         Task { [weak self] in
             guard let self else { return }
@@ -187,7 +208,7 @@ final class DashboardModel: ObservableObject {
             self.phaseStart = nil
             if self.cancelled { self.notes.append("Analysis cancelled."); return }
             if let failure { self.errorMessage = failure; return }
-            if invalid > 0 { self.notes.append("\(Fmt.n(invalid)) lines without a valid date (characters 2–11) ignored.") }
+            if invalid > 0 { self.notes.append("\(Fmt.n(invalid)) lines without a valid date (characters 2–11, or \"timestamp\" in JSON logs) ignored.") }
 
             let rows = acc.map { key, hits -> HitRow in
                 let p = key.split(separator: "\t", maxSplits: 1, omittingEmptySubsequences: false)
@@ -202,11 +223,14 @@ final class DashboardModel: ObservableObject {
         phaseStart = Date()
     }
 
-    private static func isFresh(_ cleaned: URL, comparedTo src: URL) -> Bool {
+    /// True when `derived` exists and is at least as new as every file in `sources`.
+    static func isFresh(_ derived: URL, comparedTo sources: URL...) -> Bool {
         let keys: Set<URLResourceKey> = [.contentModificationDateKey]
-        guard let c = try? cleaned.resourceValues(forKeys: keys).contentModificationDate,
-              let s = try? src.resourceValues(forKeys: keys).contentModificationDate else { return false }
-        return c >= s
+        guard let c = try? derived.resourceValues(forKeys: keys).contentModificationDate else { return false }
+        return sources.allSatisfy { src in
+            guard let s = try? src.resourceValues(forKeys: keys).contentModificationDate else { return false }
+            return c >= s
+        }
     }
 
     // MARK: Filters and aggregates

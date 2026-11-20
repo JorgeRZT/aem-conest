@@ -16,9 +16,11 @@ APP="$OUT/$APP_NAME.app"
 
 tools/gen_defaults.sh
 swift build -c release --arch arm64 --arch x86_64
+# The products folder depends on the toolchain (.build/out/… or .build/apple/…), so ask SwiftPM.
+BIN="$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/CDNFiltering"
 
 rm -rf "$OUT"; mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp ".build/out/Products/Release/CDNFiltering" "$APP/Contents/MacOS/CDNFiltering"
+cp "$BIN" "$APP/Contents/MacOS/CDNFiltering"
 
 [ -f Resources/AppIcon.icns ] || tools/make_icon.sh
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
@@ -49,10 +51,21 @@ else
 fi
 
 DMG="$OUT/AEM-Conest-$VERSION.dmg"
-STAGE="$(mktemp -d)"
-cp -R "$APP" "$STAGE/"; ln -s /Applications "$STAGE/Applications"
-hdiutil create -volname "$APP_NAME" -srcfolder "$STAGE" -ov -format UDZO "$DMG" >/dev/null
-rm -rf "$STAGE"
+# `hdiutil create -srcfolder` fails with "Resource busy" on recent macOS (seen on 26.5), so build
+# the image by hand: blank read-write image -> mount -> copy -> unmount -> compress to UDZO.
+WORK="$(mktemp -d)"
+RW="$WORK/rw.dmg"
+MNT="$WORK/mnt"
+SIZE_MB=$(( $(du -sm "$APP" | cut -f1) + 20 ))
+hdiutil create -size "${SIZE_MB}m" -fs HFS+ -volname "$APP_NAME" -ov "$RW" >/dev/null
+hdiutil attach "$RW" -nobrowse -noautoopen -mountpoint "$MNT" >/dev/null
+trap 'hdiutil detach "$MNT" -force >/dev/null 2>&1 || true' EXIT
+ditto "$APP" "$MNT/$APP_NAME.app"
+ln -s /Applications "$MNT/Applications"
+hdiutil detach "$MNT" >/dev/null
+trap - EXIT
+hdiutil convert "$RW" -format UDZO -ov -o "$DMG" >/dev/null
+rm -rf "${WORK:?}"
 
 if [ -n "${SIGN_IDENTITY:-}" ] && [ -n "${NOTARY_PROFILE:-}" ]; then
   codesign --force --sign "$SIGN_IDENTITY" "$DMG"
